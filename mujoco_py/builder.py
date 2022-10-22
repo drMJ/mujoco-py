@@ -66,16 +66,16 @@ MuJoCo comes with its own version of GLFW, so it's preferable to use that one.
 
 The easy solution is to `import mujoco_py` _before_ `import glfw`.
 ''')
-
+    # Decision point. Will it be GPU or CPU?
     lib_path = os.path.join(mujoco_path, "bin")
     if sys.platform == 'darwin':
         Builder = MacExtensionBuilder
     elif sys.platform == 'linux':
         _ensure_set_env_var("LD_LIBRARY_PATH", lib_path)
-        if os.getenv('MUJOCO_PY_FORCE_CPU') is None and get_nvidia_lib_dir() is not None:
-            _ensure_set_env_var("LD_LIBRARY_PATH", get_nvidia_lib_dir())
+        if os.getenv('MUJOCO_PY_FORCE_CPU') is None:
             Builder = LinuxGPUExtensionBuilder
         else:
+            print("Forcing mujoco_py to render on CPU. (remove MUJOCO_PY_FORCE_CPU env if you want out)")
             Builder = LinuxCPUExtensionBuilder
     elif sys.platform.startswith("win"):
         var = "PATH"
@@ -109,7 +109,6 @@ The easy solution is to `import mujoco_py` _before_ `import glfw`.
         if mod is None:
             cext_so_path = builder.build()
             mod = load_dynamic_ext('cymj', cext_so_path)
-
     return mod
 
 
